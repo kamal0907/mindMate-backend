@@ -1,16 +1,22 @@
-import {Schema, model} from 'mongoose'
+import { Schema, model } from 'mongoose'
 
-const userSchema = new Schema ( {
-    name : {
-        type : String,
-        required : ture
+const userSchema = new Schema({
+    name: {
+        type: String,
+        required: true
     },
-    email : {
-        type : String,
-        required : ture,
-        unique : true
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    googleId: {
+        type: String,
+        required: true,
+        unique: true
     }
-}, {timestamps : ture}
+},
+    { timestamps: ture }
 );
 
 const User = model('User', userSchema)
