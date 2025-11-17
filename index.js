@@ -1,8 +1,8 @@
 import express from 'express';
-require('dotenv/config');
+import 'dotenv/config'
 
 // Mongo DB connection 
-import {connectMongo} from './connection.js'
+import connectMongo from './connection.js'
 
 const app = express();
 
@@ -10,7 +10,7 @@ const app = express();
 import {authMiddleware} from './middlewares/auth.middleware.js'
 
 //Routes
-import {authRouter} from './routes/auth.route.js'
+import authRouter from './routes/auth.route.js'
 
 app.use(express.json());
 app.use(authMiddleware);

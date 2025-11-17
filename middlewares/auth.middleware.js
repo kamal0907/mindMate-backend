@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
 
-const authMiddleware = (req,res,next) => {
+export const authMiddleware = (req,res,next) => {
     const tokenHeader = req.headers['authorization'];
 
     if(!tokenHeader)
-        next();
+        return next();
 
     if(!tokenHeader.startsWith('Bearer')) {
         return res.status(400)
@@ -19,12 +19,10 @@ const authMiddleware = (req,res,next) => {
     next();
 }
 
-const ensureAuthenticated = (req,res,next) => {
+export const ensureAuthenticated = (req,res,next) => {
     if(!req.user){
         return res.status(401)
         .json({error : "You are not authenticated"});
     }
     next();
 }
-
-export default {authMiddleware, ensureAuthenticated}

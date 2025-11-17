@@ -10,13 +10,17 @@ const userSchema = new Schema({
         required: true,
         unique: true
     },
-    googleId: {
+    salt : {
         type: String,
-        required: true,
-        unique: true
-    }
+        required : true,
+        unique : true,
+    },
+    password: {
+        type : String,
+        required : true,
+    },
 },
-    { timestamps: ture }
+    { timestamps: true }
 );
 
 const User = model('User', userSchema)
