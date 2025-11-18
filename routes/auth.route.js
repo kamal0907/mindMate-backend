@@ -1,12 +1,21 @@
 import express from 'express';
 const router = express.Router();
-import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
-import {createHmac, randomBytes} from 'crypto';
-import {postSignupRequestBodySchema, postLoginRequestBodySchema} from '../validations/request.validations.js'
 
 //Models
 import User from '../models/user.model.js'
+
+//Services
+import { getUserByEmail } from '../services/user.service.js';
+
+//Utils
+import { createUserToken } from '../utils/token.js';
+import { createHashedPassword } from '../utils/hash.js';
+
+//Validations
+import {postSignupRequestBodySchema,
+    postLoginRequestBodySchema} from '../validations/request.validations.js'
+
 
 router.post('/loginWithGoogle', async (req, res) => {
     try {
@@ -25,18 +34,20 @@ router.post('/loginWithGoogle', async (req, res) => {
 
         const { name, email, sub : googleId } = payload;
 
-        let user = await User.findOne({ email });
-        if (!user)
+        let user = await getUserByEmail(email);
+        if (!user){
             user = await User.create({ name, email, googleId });
-
+        } else if (!user.googleId){
+            user.googleId = googleId;
+            await user.save();
+        }
+            
         const jwtpayload = {
             id: user._id,
             email: user.email
         }
 
-        const token = jwt.sign(jwtpayload, process.env.JWT_SECRET, {
-            expiresIn: "30d"
-        });
+        const token = await createUserToken(jwtpayload);
 
         return res.json({
             message: "Logged in successfully",
@@ -54,7 +65,8 @@ router.post('/loginWithGoogle', async (req, res) => {
 })
 
 router.post('/signup', async (req,res) => {
-    // const {name, email, password} = req.body;
+    try {
+        // const {name, email, password} = req.body;
 
     // if(!name || !email || !password)
     //     return res.status(400).json({error : "Fill all the information"})
@@ -66,17 +78,20 @@ router.post('/signup', async (req,res) => {
 
     const {name, email, password} = validationResult.data;
 
-    const exsitingUser = await User.findOne({email});
+    const exsitingUser = await getUserByEmail(email);
 
     if(exsitingUser)
         return res.status(400).json({error : `${email} already have an account`});
 
-    const salt = randomBytes(256).toString('hex');
-    const hashedPassword = createHmac('sha256',salt).update(password).digest('hex');
+    const {salt, password : hashedPassword} = createHashedPassword(password);
 
     const user = await User.insertOne({name, email, salt, password : hashedPassword});
 
-    return res.status(201).json({message : "success"})
+    return res.status(201).json({message : "success", id : user._id})
+    } catch (error) {
+        console.error("Signup route error")
+        return res.status(500).json({error : "Internal server error"})
+    }
 })
 
 router.post('/login', async (req,res) => {
@@ -94,29 +109,26 @@ router.post('/login', async (req,res) => {
 
     const {email, password} = validationResult.data;
 
-    const exsitingUser = await User.findOne({email});
+    const exisitingUser = await getUserByEmail(email);
 
-    console.log(exsitingUser);
-
-    if(!exsitingUser)
+    if(!exisitingUser)
         return res.status(400).json({error : "Doesn't have an account"});
 
-    const newHashedPassword = createHmac('sha256',exsitingUser.salt).update(password).digest('hex');
+    const {password : HashedPassword} = createHashedPassword(password, exisitingUser.salt);
+    console.log(HashedPassword);
 
-    if(exsitingUser.password != newHashedPassword)
+    if(exisitingUser.password != HashedPassword)
         return res.status(400).json({"error": "password is incorrect"})
 
     const payload = {
-        id : exsitingUser._id,
-        email : exsitingUser.email
+        id : exisitingUser._id,
+        email : exisitingUser.email
     }
 
-    const token = jwt.sign(payload,process.env.JWT_SECRET, {
-        expiresIn : '30d'
-    });
+    const token = await createUserToken(payload);
 
     return res.json({token : token,
-        email: exsitingUser.email
+        email: exisitingUser.email
     })
    } catch (error) {
     console.error("Login Error");

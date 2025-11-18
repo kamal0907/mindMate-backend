@@ -8,7 +8,8 @@ const userSchema = new Schema({
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim : true
     },
     salt : {
         type: String,
@@ -19,6 +20,11 @@ const userSchema = new Schema({
         type : String,
         required : true,
     },
+    googleId : {
+        type : String,
+        unique : true,
+        sparse : true
+    }
 },
     { timestamps: true }
 );

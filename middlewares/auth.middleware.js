@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 
+import { validateUserToken } from '../utils/token.js';
+
 export const authMiddleware = (req,res,next) => {
     const tokenHeader = req.headers['authorization'];
 
@@ -13,7 +15,8 @@ export const authMiddleware = (req,res,next) => {
 
     const token = tokenHeader.split(' ')[1];
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded =  validateUserToken(token);
+    console.log(decoded)
 
     req.user = decoded;
     next();
