@@ -28,3 +28,9 @@ export const postDiaryRequestBodySchema = z.object({
     isPublic : z.boolean().optional()
 
 })
+
+export const putDiaryRequestBodySchema = z.object({
+    content : z.string().min(0).max(5000).optional(),
+    emotions : emotionSchema,
+    isPublic : z.boolean().optional()
+})
