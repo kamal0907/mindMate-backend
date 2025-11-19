@@ -20,6 +20,10 @@ export async function createUserToken(payload) {
 }
 
 export async function validateUserToken(token) {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    return payload;
+    try {
+        const payload = jwt.verify(token, process.env.JWT_SECRET);
+        return payload;
+    } catch (error) {
+        return null;
+    }
 }

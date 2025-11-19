@@ -17,7 +17,7 @@ const emotionSchema = new Schema({
 const diarySchema = new Schema({
     user : {
         type : mongoose.Schema.Types.ObjectId,
-        ref : {User},
+        ref : User,
         required : true,
         index : true,
     },
