@@ -9,21 +9,21 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        trim : true
+        trim: true
     },
-    salt : {
+    salt: {
         type: String,
-        required : true,
-        unique : true,
+        required: false,
+        unique: true,
     },
     password: {
-        type : String,
-        required : true,
+        type: String,
+        required: false,
     },
-    googleId : {
-        type : String,
-        unique : true,
-        sparse : true
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
     }
 },
     { timestamps: true }

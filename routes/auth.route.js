@@ -13,8 +13,10 @@ import { createUserToken } from '../utils/token.js';
 import { createHashedPassword } from '../utils/hash.js';
 
 //Validations
-import {postSignupRequestBodySchema,
-    postLoginRequestBodySchema} from '../validations/request.validations.js'
+import {
+    postSignupRequestBodySchema,
+    postLoginRequestBodySchema
+} from '../validations/request.validations.js'
 
 
 router.post('/loginWithGoogle', async (req, res) => {
@@ -32,16 +34,16 @@ router.post('/loginWithGoogle', async (req, res) => {
 
         const payload = ticket.getPayload();
 
-        const { name, email, sub : googleId } = payload;
+        const { name, email, sub: googleId } = payload;
 
         let user = await getUserByEmail(email);
-        if (!user){
+        if (!user) {
             user = await User.create({ name, email, googleId });
-        } else if (!user.googleId){
+        } else if (!user.googleId) {
             user.googleId = googleId;
             await user.save();
         }
-            
+
         const jwtpayload = {
             id: user._id,
             email: user.email
@@ -64,78 +66,78 @@ router.post('/loginWithGoogle', async (req, res) => {
     }
 })
 
-router.post('/signup', async (req,res) => {
+router.post('/signup', async (req, res) => {
     try {
         // const {name, email, password} = req.body;
 
-    // if(!name || !email || !password)
-    //     return res.status(400).json({error : "Fill all the information"})
+        // if(!name || !email || !password)
+        //     return res.status(400).json({error : "Fill all the information"})
 
-    const validationResult = await postSignupRequestBodySchema.safeParseAsync(req.body);
+        const validationResult = await postSignupRequestBodySchema.safeParseAsync(req.body);
 
-    if(validationResult.error)
-        return res.status(400).json({error : validationResult.error.format})
+        if (validationResult.error)
+            return res.status(400).json({ error: validationResult.error.format })
 
-    const {name, email, password} = validationResult.data;
+        const { name, email, password } = validationResult.data;
 
-    const exsitingUser = await getUserByEmail(email);
+        const existingUser = await getUserByEmail(email);
 
-    if(exsitingUser)
-        return res.status(400).json({error : `${email} already have an account`});
+        if (existingUser)
+            return res.status(400).json({ error: `${email} already have an account` });
 
-    const {salt, password : hashedPassword} = createHashedPassword(password);
+        const { salt, password: hashedPassword } = createHashedPassword(password);
 
-    const user = await User.insertOne({name, email, salt, password : hashedPassword});
+        const user = await User.create({ name, email, salt, password: hashedPassword });
 
-    return res.status(201).json({message : "success", id : user._id})
+        return res.status(201).json({ message: "success", id: user._id })
     } catch (error) {
         console.error("Signup route error")
-        return res.status(500).json({error : "Internal server error"})
+        return res.status(500).json({ error: "Internal server error" })
     }
 })
 
-router.post('/login', async (req,res) => {
-   try {
-    //  const {email, password} = req.body;
+router.post('/login', async (req, res) => {
+    try {
+        //  const {email, password} = req.body;
 
-    // if(!email || !password) {
-    //     return res.status(400).json({error : "Fill the required detials"});
-    // }
+        // if(!email || !password) {
+        //     return res.status(400).json({error : "Fill the required detials"});
+        // }
 
-    const validationResult = await postLoginRequestBodySchema.safeParseAsync(req.body);
+        const validationResult = await postLoginRequestBodySchema.safeParseAsync(req.body);
 
-    if(validationResult.error)
-        return res.status(400).json({error : validationResult.error.format})
+        if (validationResult.error)
+            return res.status(400).json({ error: validationResult.error.format })
 
-    const {email, password} = validationResult.data;
+        const { email, password } = validationResult.data;
 
-    const exisitingUser = await getUserByEmail(email);
+        const existingUser = await getUserByEmail(email);
 
-    if(!exisitingUser)
-        return res.status(400).json({error : "Doesn't have an account"});
+        if (!existingUser)
+            return res.status(400).json({ error: "Doesn't have an account" });
 
-    const {password : HashedPassword} = createHashedPassword(password, exisitingUser.salt);
-    console.log(HashedPassword);
+        const { password: HashedPassword } = createHashedPassword(password, existingUser.salt);
 
-    if(exisitingUser.password != HashedPassword)
-        return res.status(400).json({"error": "password is incorrect"})
+        if (existingUser.password != HashedPassword)
+            return res.status(400).json({ "error": "password is incorrect" })
 
-    const payload = {
-        id : exisitingUser._id,
-        email : exisitingUser.email
+        const payload = {
+            id: existingUser._id,
+            email: existingUser.email
+        }
+
+        const token = await createUserToken(payload);
+
+        return res.json({
+            token: token,
+            email: existingUser.email
+        })
+    } catch (error) {
+        console.error("Login Error");
+        return res.status(500).json({
+            error: "Internal server error"
+        })
     }
-
-    const token = await createUserToken(payload);
-
-    return res.json({token : token,
-        email: exisitingUser.email
-    })
-   } catch (error) {
-    console.error("Login Error");
-    return res.status(500).json({
-        error : "Internal server error"
-    })
-   }
 })
 
 export default router;
