@@ -1,5 +1,3 @@
-import jwt from 'jsonwebtoken';
-
 import { validateUserToken } from '../utils/token.js';
 
 export const authMiddleware = async (req,res,next) => {

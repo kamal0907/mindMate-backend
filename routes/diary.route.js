@@ -1,9 +1,7 @@
 import express from 'express'
 const router = express.Router();
-import sanitizeHtml from 'sanitize-html'
 
 //Models
-import User from '../models/user.model.js';
 import Diary from '../models/diary.model.js';
 
 //Middlewares
@@ -12,6 +10,9 @@ import { authMiddleware, ensureAuthenticated } from '../middlewares/auth.middlew
 //Validations
 import { postDiaryRequestBodySchema, putDiaryRequestBodySchema } from '../validations/request.validations.js';
 import mongoose from 'mongoose';
+
+//Services
+import { sanitizedContent } from '../services/content.service.js';
 
 
 router.post('/diary', authMiddleware, ensureAuthenticated, async (req, res) => {
@@ -23,10 +24,7 @@ router.post('/diary', authMiddleware, ensureAuthenticated, async (req, res) => {
 
     const {content , emotions, isPublic = false} = validationResult.data;
 
-    const sanitizeContent = sanitizeHtml(content, {
-        allowedAttributes : {},
-        allowedTags : []
-    }).trim();
+    const sanitizeContent = await sanitizedContent(content);
 
     const diaryEntry = {
         user : req.user.id,
@@ -153,10 +151,7 @@ router.put('/diary/:id', authMiddleware, ensureAuthenticated, async (req,res) =>
         const updateObj = {}
 
         if (typeof content !== undefined){
-            updateObj.content = sanitizeHtml(content, {
-                allowedAttributes : {},
-                allowedTags : []
-            }).trim();
+            updateObj.content = await sanitizedContent(content);
         }
 
         if( typeof emotions !== undefined){

@@ -34,3 +34,7 @@ export const putDiaryRequestBodySchema = z.object({
     emotions : emotionSchema,
     isPublic : z.boolean().optional()
 })
+
+export const postGratitudeRequestBodySchema = z.object({
+    content : z.string().min(1).max(200),
+})
