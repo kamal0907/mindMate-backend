@@ -9,3 +9,11 @@ GET /api/diary/:id — get single entry (public or owned)
 PUT /api/diary/:id — update (only owner)
 
 DELETE /api/diary/:id — delete (only owner)
+
+POST /api/gratitude — create entry (authenticated). Payload: { content }
+
+GET /api/gratitude/:id — get single entry (public or owned)
+
+<!-- PUT /api/gratitude/:id — update (only owner)
+
+DELETE /api/gratitude/:id — delete (only owner) -->

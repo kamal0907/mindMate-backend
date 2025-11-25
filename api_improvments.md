@@ -75,6 +75,19 @@ router.get("/", authMiddleware, ensureAuthenticated, async (req, res) => {
 
 export default router;
 
----------------------------------DELETE api/diary/:id
+--------------------------------- DELETE api/diary/:id
 
 Soft reset : we maintain the deleted entry by adding the delete field in schema (deletedAt, deletedBy) 
+
+-----------------------------------Chat bot integration
+
+Build it with the ollama 
+
+Ollama - model runner + lightweight server (help in download/ running the models on your local machine)
+
+llama 3 - variants of LLM (model which provide the response for user query)
+
+commands - 1. download the ollama from browser
+           2. ollama pull llama3
+           3. ollama run llama3
+           4. http://localhost:11434/api/chat on locall it will available

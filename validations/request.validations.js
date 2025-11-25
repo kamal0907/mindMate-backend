@@ -38,3 +38,7 @@ export const putDiaryRequestBodySchema = z.object({
 export const postGratitudeRequestBodySchema = z.object({
     content : z.string().min(1).max(200),
 })
+
+export const postChatRequestBodySchema = z.object({
+    message : z.string().min(1).max(4000).trim()
+})
