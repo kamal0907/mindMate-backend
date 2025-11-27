@@ -1,4 +1,4 @@
-import { gemini } from '../utils/model.js'
+import { gemini, ollama } from '../utils/model.js'
 
 
 export async function chatProvider({message, meta, model}) {
@@ -7,9 +7,9 @@ export async function chatProvider({message, meta, model}) {
 
     switch(provider){
         case 'ollama':
-            return await ollama({message, meta, model})
+            return await ollama({message, meta, model});
         case 'gemini':
-            default:
-                return await gemini({message, meta, model})
+        default:
+            return await gemini({message, meta, model});
     }
 }
