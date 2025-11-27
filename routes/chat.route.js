@@ -2,17 +2,17 @@ import express from 'express';
 const router = express.Router();
 
 // Models
-import Chat from '../models/chat.model';
+import Chat from '../models/chat.model.js';
 
 // Middlewares
-import { authMiddleware, ensureAuthenticated } from '../middlewares/auth.middleware';
+import { authMiddleware, ensureAuthenticated } from '../middlewares/auth.middleware.js';
 
 // Validations
-import { postChatRequestBodySchema } from '../validations/request.validations';
+import { postChatRequestBodySchema } from '../validations/request.validations.js';
 
 // Services
-import { sanitizedContent } from '../services/content.service';
-import { chatProvider } from '../services/chat.service';
+import { sanitizedContent } from '../services/content.service.js';
+import { chatProvider } from '../services/chat.service.js';
 
 router.post('/chat', authMiddleware, ensureAuthenticated, async (req, res) => {
 
@@ -34,7 +34,7 @@ router.post('/chat', authMiddleware, ensureAuthenticated, async (req, res) => {
 
     try {
         
-        const reply = await chatProvider({sanitizedMessage, meta});
+        const reply = await chatProvider({ message : sanitizedMessage, meta, model : process.env.CHAT_MODEL});
 
         const safeReply = await sanitizedContent(reply ?? '');
 
