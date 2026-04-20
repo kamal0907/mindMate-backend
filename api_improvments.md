@@ -91,3 +91,37 @@ commands - 1. download the ollama from browser
            2. ollama pull llama3
            3. ollama run llama3
            4. http://localhost:11434/api/chat on locall it will available
+
+
+Grok api integration 
+
+curl https://api.x.ai/v1/responses \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer " \
+    -d '{
+      "model": "grok-4.20-reasoning",
+      "input": "What is the meaning of life, the universe, and everything?"
+    }'
+
+
+api get from the https://cloud.sambanova.ai/
+
+
+deepseek
+curl -H "Authorization: Bearer $API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+	"stream": true,
+	"model": "DeepSeek-V3.1",
+	"messages": [
+		{
+			"role": "system",
+			"content": "You are a helpful assistant"
+		},
+		{
+			"role": "user",
+			"content": "Hello!"
+		}
+	]
+	}' \
+     -X POST https://api.sambanova.ai/v1/chat/completions

@@ -46,7 +46,8 @@ router.post('/loginWithGoogle', async (req, res) => {
 
         const jwtpayload = {
             id: user._id,
-            email: user.email
+            email: user.email,
+            name: user.name
         }
 
         const token = await createUserToken(jwtpayload);
@@ -123,14 +124,19 @@ router.post('/login', async (req, res) => {
 
         const payload = {
             id: existingUser._id,
-            email: existingUser.email
+            email: existingUser.email,
+            name: existingUser.name
         }
 
         const token = await createUserToken(payload);
 
         return res.json({
             token: token,
-            email: existingUser.email
+            user: {
+                id: existingUser._id,
+                name: existingUser.name,
+                email: existingUser.email
+            }
         })
     } catch (error) {
         console.error("Login Error");

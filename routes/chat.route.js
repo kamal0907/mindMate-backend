@@ -18,32 +18,32 @@ router.post('/chat', authMiddleware, ensureAuthenticated, async (req, res) => {
 
     const validationResult = await postChatRequestBodySchema.safeParseAsync(req.body);
 
-    if(!validationResult.success)
-        return res.status(400).json({error : validationResult.error.flatten().fieldErrors});
+    if (!validationResult.success)
+        return res.status(400).json({ error: validationResult.error.flatten().fieldErrors });
 
-    const {message} = validationResult.data;
+    const { message } = validationResult.data;
 
     const sanitizedMessage = await sanitizedContent(message);
 
-    if(!sanitizedMessage)
-        return res.status(400).json({error : "Empty message after sanitize"})
+    if (!sanitizedMessage)
+        return res.status(400).json({ error: "Empty message after sanitize" })
 
     const meta = {
-        userId : req.user.id
+        userId: req.user.id
     }
 
     try {
-        
-        const reply = await chatProvider({ message : sanitizedMessage, meta, model : process.env.CHAT_MODEL});
+
+        const reply = await chatProvider({ message: sanitizedMessage, meta, model: process.env.CHAT_MODEL });
 
         const safeReply = await sanitizedContent(reply ?? '');
 
         return res.json({
-            reply : safeReply
+            reply: safeReply
         })
     } catch (error) {
-        console.log("POST /api/chat", error);
-        return res.status(500).json({error : "Internal Server Error"})
+        console.error("Chat API Error:", error.message || error);
+        return res.status(500).json({ error: "Internal Server Error" })
     }
 })
 

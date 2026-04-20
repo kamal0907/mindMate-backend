@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+// Using native fetch available in Node 22+
 
   const systemPrompt = 'You are MindMate, an empathetic assistant. Keep responses supportive and do not provide medical/legal advice. If user is in crisis, encourage contacting emergency services or a hotline.';
 
@@ -133,3 +133,96 @@ export async function ollama({ message, meta = {}, model = 'llama3' }) {
     throw err;
   }
 }
+
+export async function grok({ message, meta = {}, model = 'grok-4.20-reasoning' }) {
+    const GROK_KEY = process.env.GROK_API_KEY;
+    const GROK_URL = 'https://api.x.ai/v1/responses';
+
+    if (!message) throw new Error('Grok provider: message is required');
+
+    const payload = {
+        model,
+        input: `${systemPrompt}\n\nUser: ${message}`
+    };
+
+    const controller = new AbortController();
+    const timeoutMs = Number(process.env.CHAT_PROVIDER_TIMEOUT_MS || 15000);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        const res = await fetch(GROK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${GROK_KEY}`
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(`Grok provider error ${res.status}: ${text}`);
+        }
+
+        const data = await res.json();
+
+        // Extracting output_text as per x.ai Responses API documentation
+        let reply = data?.output_text || data?.message?.content || JSON.stringify(data).slice(0, 2000);
+
+        return String(reply).trim();
+    } catch (err) {
+        if (err.name === 'AbortError') throw new Error('Grok provider request timed out');
+        throw err;
+    }
+}
+
+export async function deepseek({ message, meta = {}, model = 'DeepSeek-V3.1' }) {
+    const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY;
+    const DEEPSEEK_URL = 'https://api.sambanova.ai/v1/chat/completions';
+
+    if (!message) throw new Error('DeepSeek provider: message is required');
+
+    const payload = {
+        model,
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: message }
+        ],
+        stream: false
+    };
+
+    const controller = new AbortController();
+    const timeoutMs = Number(process.env.CHAT_PROVIDER_TIMEOUT_MS || 15000);
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        const res = await fetch(DEEPSEEK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${DEEPSEEK_KEY}`
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(`DeepSeek provider error ${res.status}: ${text}`);
+        }
+
+        const data = await res.json();
+        const reply = data?.choices?.[0]?.message?.content || JSON.stringify(data).slice(0, 2000);
+
+        return String(reply).trim();
+    } catch (err) {
+        if (err.name === 'AbortError') throw new Error('DeepSeek provider request timed out');
+        throw err;
+    }
+}
+
