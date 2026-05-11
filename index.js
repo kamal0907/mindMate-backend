@@ -15,6 +15,7 @@ import authRouter from './routes/auth.route.js'
 import diaryRouter from './routes/diary.route.js'
 import gratitudeRouter from './routes/gratitude.route.js'
 import chatRouter from './routes/chat.route.js'
+import aiRouter from './routes/ai.route.js'
 
 app.use(cors({
     origin: 'http://localhost:3000',
@@ -29,6 +30,7 @@ connectMongo(process.env.MONGO_URI).then(() => {
 
 
 app.use('/auth', authRouter);
+app.use('/ai', aiRouter);
 app.use('/', diaryRouter);
 app.use('/', gratitudeRouter);
 app.use('/', chatRouter)

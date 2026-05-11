@@ -3,6 +3,7 @@ const router = express.Router();
 
 //Models
 import Diary from '../models/diary.model.js';
+import User from '../models/user.model.js';
 
 //Middlewares
 import { authMiddleware, ensureAuthenticated } from '../middlewares/auth.middleware.js';
@@ -13,6 +14,7 @@ import mongoose from 'mongoose';
 
 //Services
 import { sanitizedContent } from '../services/content.service.js';
+import { analyzeSentiment } from '../services/ai.service.js';
 
 
 router.post('/diary', authMiddleware, ensureAuthenticated, async (req, res) => {
@@ -26,16 +28,23 @@ router.post('/diary', authMiddleware, ensureAuthenticated, async (req, res) => {
 
         const sanitizeContent = await sanitizedContent(content);
 
+        let finalEmotions = emotions;
+        if (!finalEmotions) {
+            // Automatically analyze sentiment if emotions are not provided
+            finalEmotions = await analyzeSentiment(sanitizeContent);
+        }
+
         const diaryEntry = {
             user: req.user.id,
             content: sanitizeContent,
-            isPublic
+            isPublic,
+            emotions: finalEmotions
         }
 
-        if (emotions)
-            diaryEntry.emotions = emotions;
-
         const result = await Diary.create(diaryEntry);
+
+        // Invalidate AI insight cache
+        await User.findByIdAndUpdate(req.user.id, { needsInsightUpdate: true });
 
         return res.status(201).json({
             message: "Diary entry created",
@@ -169,6 +178,11 @@ router.put('/diary/:id', authMiddleware, ensureAuthenticated, async (req, res) =
             { $set: updateObj },
             { new: true, runValidators: true }
         ).lean();
+
+        if (updated) {
+            // Invalidate AI insight cache
+            await User.findByIdAndUpdate(req.user.id, { needsInsightUpdate: true });
+        }
 
         if (!updated)
             return res.status(400).json({ error: "Diary is not found or you are not the owner" })

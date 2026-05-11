@@ -34,7 +34,15 @@ router.post('/loginWithGoogle', async (req, res) => {
 
         const payload = ticket.getPayload();
 
-        const { name, email, sub: googleId } = payload;
+        if (!payload) {
+            return res.status(400).json({ error: "Invalid Google token payload" });
+        }
+
+        const { name, email, sub: googleId, email_verified } = payload;
+
+        if (!email_verified) {
+            return res.status(400).json({ error: "Google email is not verified" });
+        }
 
         let user = await getUserByEmail(email);
         if (!user) {
@@ -60,12 +68,15 @@ router.post('/loginWithGoogle', async (req, res) => {
                 name: user.name,
                 email: user.email
             }
-        })
+        });
     } catch (error) {
-        console.log(error);
-        return res.status(500).json({ message: "Internal Server Error" })
+        console.error("Google Login Error:", error);
+        return res.status(500).json({
+            error: "Authentication failed",
+            message: error instanceof Error ? error.message : "Internal Server Error"
+        });
     }
-})
+});
 
 router.post('/signup', async (req, res) => {
     try {

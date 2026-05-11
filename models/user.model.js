@@ -24,6 +24,15 @@ const userSchema = new Schema({
         type: String,
         unique: true,
         sparse: true
+    },
+    lastInsight: {
+        pulse: String,
+        tip: String,
+        generatedAt: Date
+    },
+    needsInsightUpdate: {
+        type: Boolean,
+        default: true
     }
 },
     { timestamps: true }
