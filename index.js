@@ -18,7 +18,9 @@ import chatRouter from './routes/chat.route.js'
 import aiRouter from './routes/ai.route.js'
 
 app.use(cors({
-    origin: 'http://localhost:3000' || 'https://mind-mate-rosy.vercel.app',
+    origin: ['http://localhost:3000',
+        'https://mind-mate-rosy.vercel.app'
+    ],
     credentials: true
 }));
 app.use(express.json());
